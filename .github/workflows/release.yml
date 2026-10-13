@@ -1,0 +1,73 @@
+name: Release
+
+# Pushing a tag such as v0.1.0 builds the release, signs it with the key held in the repository's
+# secrets and attaches the APK to a GitHub Release, which is where Obtainium looks for it.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up JDK 21
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          cache: gradle
+      - name: Check the tag names the version being built
+        run: |
+          version=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match versionName $version" >&2
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Restore the signing key
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ] || [ -z "$SIGNING_STORE_PASSWORD" ] || [ -z "$SIGNING_KEY_ALIAS" ]; then
+            echo "The signing secrets are not set; refusing to publish an unsigned release" >&2
+            exit 1
+          fi
+          umask 077
+          printf '%s' "$SIGNING_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          # The play build type reads the upload key entries whenever this file exists.
+          {
+            printf 'storeFile=%s\n' "$RUNNER_TEMP/release.jks"
+            printf 'storePassword=%s\n' "$SIGNING_STORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$SIGNING_KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$SIGNING_STORE_PASSWORD"
+            printf 'uploadKeyAlias=%s\n' "$SIGNING_KEY_ALIAS"
+            printf 'uploadKeyPassword=%s\n' "$SIGNING_STORE_PASSWORD"
+          } > keystore.properties
+      - name: Build the signed release
+        run: ./gradlew :app:assembleRelease --no-daemon
+      - name: Verify the signature
+        run: |
+          apk="VibeCam-$VERSION.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$apk"
+          apksigner=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -n 1)
+          "$apksigner" verify --print-certs "$apk" | tee signature.txt
+          grep -q 'certificate SHA-256 digest' signature.txt
+          sha256sum "$apk" > "$apk.sha256"
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "VibeCam-$VERSION.apk" "VibeCam-$VERSION.apk.sha256" \
+            --title "VibeCam $VERSION" \
+            --generate-notes
+      - name: Remove the signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" keystore.properties
