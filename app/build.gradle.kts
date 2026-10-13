@@ -127,8 +127,8 @@ android {
         applicationId = "tech.extrabox.vibecam"
         minSdk = 29
         targetSdk = 37
-        versionCode = 94
-        versionName = versionCode.toString()
+        versionCode = 1
+        versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
