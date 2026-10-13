@@ -4,6 +4,8 @@
 
 **It's a vibe.** A polished, open-source camera app for Android, built on GrapheneOS Camera.
 
+<img src="screenshots/zoom-dial.png" alt="VibeCam with the zoom dial open at 1.2x over the camera preview" width="300">
+
 VibeCam keeps the privacy-first foundation of the GrapheneOS camera and adds the feel of a flagship phone camera, starting with an iPhone-style zoom dial that adapts to your phone's lenses.
 
 - **Zoom dial:** swipe or long-press the lens shortcuts to open a dial, with a stop where each lens takes over.
