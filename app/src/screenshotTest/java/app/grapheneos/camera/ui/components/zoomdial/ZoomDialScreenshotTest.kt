@@ -86,3 +86,43 @@ private fun ZoomDialViewfinder(
         )
     }
 }
+
+@PreviewTest
+@PreviewLightDark
+@Composable
+private fun ZoomDialControlStates() {
+    CameraPreviewColumn {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+        ) {
+            ZoomDialControlViewfinder(expanded = false)
+            ZoomDialControlViewfinder(expanded = true)
+            ZoomDialControlViewfinder(
+                expanded = false,
+                enabled = false,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ZoomDialControlViewfinder(
+    expanded: Boolean,
+    enabled: Boolean = true,
+) {
+    CameraPreviewViewfinder(aspectRatio = VIEWFINDER_ASPECT_RATIO) {
+        ZoomDialControl(
+            value = 1.2f,
+            onValueChange = {},
+            valueRange = THREE_LENS_RANGE,
+            stops = THREE_LENS_STOPS,
+            valueSuffix = ZOOM_SUFFIX,
+            expanded = expanded,
+            onExpand = {},
+            onStopClick = {},
+            expandLabel = "Adjust zoom",
+            modifier = Modifier.align(alignment = Alignment.BottomCenter),
+            enabled = enabled,
+        )
+    }
+}
