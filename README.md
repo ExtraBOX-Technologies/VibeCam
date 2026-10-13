@@ -19,7 +19,11 @@ VibeCam has only been tested on a Pixel 10 Pro running GrapheneOS (a "Ghost Phon
 
 Coming soon: signed releases you can install with [Obtainium](https://wiki.obtainium.imranr.dev/). Once the first release is published, copy this repository's GitHub URL into Obtainium and it will install the app and keep it up to date for you. Until then, the app has to be built from source.
 
-Google is actively working to remove your rights to your own device, so you may be blocked from side-loading apps at some point, that is, from installing your own apps outside their app store.
+## Keep Android open
+
+Your ownership of your own device is under threat. Google is actively working to remove your right to install the apps you choose, so you may be blocked from side-loading at some point, that is, from installing apps like this one outside their app store.
+
+VibeCam only exists because Android still lets you install software that did not come from Google. To learn what is changing and what you can do about it, visit [keepandroidopen.org](https://keepandroidopen.org/).
 
 ## Build from source
 
