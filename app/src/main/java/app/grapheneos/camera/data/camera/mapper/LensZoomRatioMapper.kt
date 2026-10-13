@@ -13,6 +13,12 @@ import kotlin.math.hypot
  */
 interface LensZoomRatioMapper {
     fun map(lenses: CameraLenses): List<Float>
+
+    /** Null when either lens reports no usable focal length or sensor size. */
+    fun ratio(
+        lens: CameraLens,
+        main: CameraLens,
+    ): Float?
 }
 
 internal class LensZoomRatioMapperImpl @Inject constructor() : LensZoomRatioMapper {
@@ -24,6 +30,19 @@ internal class LensZoomRatioMapperImpl @Inject constructor() : LensZoomRatioMapp
         return when (mainReach) {
             null -> emptyList()
             else -> reaches.map { reach -> reach / mainReach }.sorted()
+        }
+    }
+
+    override fun ratio(
+        lens: CameraLens,
+        main: CameraLens,
+    ): Float? {
+        val reach = reachOf(lens = lens)
+        val mainReach = reachOf(lens = main)
+
+        return when {
+            reach == null || mainReach == null -> null
+            else -> reach / mainReach
         }
     }
 

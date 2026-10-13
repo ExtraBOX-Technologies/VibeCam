@@ -7,6 +7,7 @@ import app.grapheneos.camera.data.camera.model.CameraBindSettings
 import app.grapheneos.camera.data.camera.model.CameraSessionEvent
 import app.grapheneos.camera.data.camera.model.LensFacing
 import app.grapheneos.camera.data.camera.session.CameraSession
+import app.grapheneos.camera.data.camera.session.ZoomLensRouter
 import app.grapheneos.camera.data.core.model.ExtensionMode
 import app.grapheneos.camera.data.core.model.FlashMode
 import app.grapheneos.camera.data.sound.model.CameraSound
@@ -77,6 +78,7 @@ interface ViewfinderCameraDelegate {
 
 internal class ViewfinderCameraDelegateImpl @Inject constructor(
     private val session: CameraSession,
+    private val zoomLensRouter: ZoomLensRouter,
     private val entryPoint: CameraEntryPoint,
     private val inspectCameraLenses: InspectCameraLenses,
     private val resolveAvailableModes: ResolveAvailableModes,
@@ -185,6 +187,10 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
     ): ViewfinderBindTarget? {
         val host = host?.takeIf { session.isActive } ?: return null
 
+        if (isQrMode || extensionMode != null) {
+            zoomLensRouter.selectMainCamera()
+        }
+
         // Silent: ViewfinderViewModel.switchLens() refuses a lens the user picks, with a message.
         session.lensFacing = session.lensFacing.supportedOrOpposite {
             session.isLensFacingSupported(
@@ -221,7 +227,7 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
         stateHolder.update {
             it.copy(
                 session = it.session.copy(
-                    zoom = session.zoom,
+                    zoom = zoomLensRouter.zoomOf(session = session),
                     exposure = session.exposure,
                 ),
             )
@@ -268,26 +274,26 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
     }
 
     override fun stepZoom(step: Float) {
-        if (stateHolder.state.value.isQrMode()) return
+        val zoom = zoomLensRouter.zoomOf(session = session)
+            ?.takeUnless { stateHolder.state.value.isQrMode() }
+        val requested = zoom?.let { it.zoomRatio + step }
 
-        val zoom = session.zoom ?: return
-        val requested = zoom.zoomRatio + step
-
-        val zoomRatio = when {
-            requested > zoom.maxZoomRatio -> zoom.maxZoomRatio
-            requested < zoom.minZoomRatio -> zoom.minZoomRatio
+        when {
+            zoom == null || requested == null -> Unit
+            requested > zoom.maxZoomRatio -> requestZoom(zoomRatio = zoom.maxZoomRatio)
+            requested < zoom.minZoomRatio -> requestZoom(zoomRatio = zoom.minZoomRatio)
             // smoothly transition between wide angle camera to primary one
-            zoom.zoomRatio < 1f && requested > 1f -> 1f
-            else -> requested
+            zoom.zoomRatio < 1f && requested > 1f -> requestZoom(zoomRatio = 1f)
+            else -> requestZoom(zoomRatio = requested)
         }
-
-        session.setZoomRatio(zoomRatio)
     }
 
     override fun scaleZoom(scaleFactor: Float) {
-        val zoomRatio = session.zoom?.let { it.zoomRatio * scaleFactor } ?: 1f
+        val zoomRatio = zoomLensRouter.zoomOf(session = session)
+            ?.let { it.zoomRatio * scaleFactor }
+            ?: 1f
 
-        session.setZoomRatio(zoomRatio)
+        requestZoom(zoomRatio = zoomRatio)
     }
 
     override fun setLinearZoom(linearZoom: Float) {
@@ -295,7 +301,25 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
     }
 
     override fun setZoomRatio(zoomRatio: Float) {
-        session.setZoomRatio(zoomRatio)
+        requestZoom(zoomRatio = zoomRatio)
+    }
+
+    /**
+     * A recording ends with its camera, and an extension or the scanner is bound to the main one:
+     * none of them follows the zoom onto another camera.
+     */
+    private fun requestZoom(zoomRatio: Float) {
+        val state = stateHolder.state.value
+        val lensChanged = zoomLensRouter.request(
+            session = session,
+            zoomRatio = zoomRatio,
+            canSwitchCamera = !state.recording.isActive() && !state.isQrMode() &&
+                state.mode.extensionMode == null,
+        )
+
+        if (lensChanged) {
+            _cameraEvents.trySend(ViewfinderCameraEvent.LensChanged)
+        }
     }
 
     override fun setExposureCompensation(compensationIndex: Int) {
@@ -396,13 +420,18 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
     }
 
     private fun loadZoom() {
-        val lensZoomRatios = inspectCameraLenses(session = session).stopRatios
+        zoomLensRouter.applyPending(session = session)
+
+        val lensStops = inspectCameraLenses(session = session).stopRatios.map { zoomRatio ->
+            zoomLensRouter.shared(session = session, zoomRatio = zoomRatio)
+        }
+        val lensZoomRatios = lensStops + zoomLensRouter.takeoverRatios(session = session)
 
         stateHolder.update {
             it.copy(
                 session = it.session.copy(
-                    zoom = session.zoom,
-                    lensZoomRatios = lensZoomRatios,
+                    zoom = zoomLensRouter.zoomOf(session = session),
+                    lensZoomRatios = lensZoomRatios.sorted(),
                 ),
             )
         }
@@ -410,7 +439,9 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
 
     private fun refreshZoom() {
         stateHolder.update {
-            it.copy(session = it.session.copy(zoom = session.zoom))
+            it.copy(
+                session = it.session.copy(zoom = zoomLensRouter.zoomOf(session = session)),
+            )
         }
     }
 

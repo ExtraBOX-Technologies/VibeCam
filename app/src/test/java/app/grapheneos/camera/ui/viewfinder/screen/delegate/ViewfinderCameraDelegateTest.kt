@@ -2,15 +2,23 @@ package app.grapheneos.camera.ui.viewfinder.screen.delegate
 
 import android.view.Surface
 import app.grapheneos.camera.R
+import app.grapheneos.camera.data.camera.mapper.CameraLensMapMapperImpl
+import app.grapheneos.camera.data.camera.mapper.LensZoomRatioMapperImpl
 import app.grapheneos.camera.data.camera.model.CameraExposure
+import app.grapheneos.camera.data.camera.model.CameraLens
 import app.grapheneos.camera.data.camera.model.CameraLensReport
 import app.grapheneos.camera.data.camera.model.CameraSessionEvent
 import app.grapheneos.camera.data.camera.model.CameraZoom
 import app.grapheneos.camera.data.camera.model.LensDataStatus
 import app.grapheneos.camera.data.camera.model.LensFacing
+import app.grapheneos.camera.data.camera.model.RearCameraDescription
+import app.grapheneos.camera.data.camera.session.CameraLensSource
+import app.grapheneos.camera.data.camera.session.CameraSelectorSourceImpl
 import app.grapheneos.camera.data.camera.session.CameraSession
+import app.grapheneos.camera.data.camera.session.ZoomLensRouterImpl
 import app.grapheneos.camera.data.core.model.CameraMode
 import app.grapheneos.camera.data.core.model.DeviceOrientation
+import app.grapheneos.camera.data.core.model.ExtensionMode
 import app.grapheneos.camera.data.core.model.FlashMode
 import app.grapheneos.camera.data.core.model.VideoQuality
 import app.grapheneos.camera.data.settings.model.CameraSettings
@@ -24,6 +32,7 @@ import app.grapheneos.camera.testutil.cameraEntryPoint
 import app.grapheneos.camera.testutil.viewfinderStateHolder
 import app.grapheneos.camera.ui.viewfinder.screen.PreviewFrameHolder
 import app.grapheneos.camera.ui.viewfinder.screen.ViewfinderHost
+import app.grapheneos.camera.ui.viewfinder.screen.model.RecordingPhase
 import app.grapheneos.camera.ui.viewfinder.screen.model.ThumbnailSize
 import app.grapheneos.camera.ui.viewfinder.screen.model.ViewfinderCameraEvent
 import app.grapheneos.camera.ui.viewfinder.screen.model.ViewfinderScreenEffect as Effect
@@ -65,6 +74,17 @@ class ViewfinderCameraDelegateTest {
     )
     private val session = mockk<CameraSession>(relaxed = true)
     private val inspectCameraLenses = mockk<InspectCameraLenses>(relaxed = true)
+    private val cameraSelectorSource = CameraSelectorSourceImpl()
+    private val cameraLensSource = mockk<CameraLensSource> {
+        every { rearCamerasOf(cameraInfos = any()) } returns emptyList()
+    }
+    private val zoomLensRouter = ZoomLensRouterImpl(
+        cameraLensSource = cameraLensSource,
+        cameraLensMapMapper = CameraLensMapMapperImpl(
+            lensZoomRatioMapper = LensZoomRatioMapperImpl(),
+        ),
+        cameraSelectorSource = cameraSelectorSource,
+    )
     private val resolveAvailableModes = mockk<ResolveAvailableModes>()
     private val resolveDroppedVideoQuality = mockk<ResolveDroppedVideoQuality>()
     private val playCameraSound = mockk<PlayCameraSound>(relaxed = true)
@@ -367,6 +387,55 @@ class ViewfinderCameraDelegateTest {
     }
 
     @Test
+    fun zoomOntoAnotherRearCamera_asksForItToBeBound() {
+        every { session.zoom } returns ZOOM
+        every { cameraLensSource.rearCamerasOf(cameraInfos = any()) } returns TWO_REAR_CAMERAS
+        val delegate = createAttachedDelegate()
+        val events = mutableListOf<ViewfinderCameraEvent>()
+        scope.launch(mainDispatcherRule.testDispatcher) {
+            delegate.cameraEvents.collect { events += it }
+        }
+
+        delegate.setZoomRatio(zoomRatio = 6f)
+
+        assertEquals(listOf(ViewfinderCameraEvent.LensChanged), events)
+        assertEquals("telephoto", cameraSelectorSource.rearCameraId)
+    }
+
+    @Test
+    fun zoomOntoAnotherRearCamera_whileRecording_staysOnTheBoundCamera() {
+        every { session.zoom } returns ZOOM
+        every { cameraLensSource.rearCamerasOf(cameraInfos = any()) } returns TWO_REAR_CAMERAS
+        val delegate = createAttachedDelegate()
+        val events = mutableListOf<ViewfinderCameraEvent>()
+        scope.launch(mainDispatcherRule.testDispatcher) {
+            delegate.cameraEvents.collect { events += it }
+        }
+        stateHolder.update {
+            it.copy(recording = it.recording.copy(phase = RecordingPhase.RECORDING))
+        }
+
+        delegate.setZoomRatio(zoomRatio = 6f)
+
+        assertEquals(emptyList<ViewfinderCameraEvent>(), events)
+        assertEquals(null, cameraSelectorSource.rearCameraId)
+        verify(exactly = 1) { session.setZoomRatio(6f) }
+    }
+
+    @Test
+    fun aModeBoundToTheMainCamera_leavesTheSelectedRearCamera() {
+        cameraSelectorSource.rearCameraId = "telephoto"
+        val delegate = createAttachedDelegate()
+
+        delegate.selectLens(
+            isQrMode = false,
+            extensionMode = ExtensionMode.NIGHT,
+        )
+
+        assertEquals(null, cameraSelectorSource.rearCameraId)
+    }
+
+    @Test
     fun providerReady_isHandedOn() {
         val delegate = createAttachedDelegate()
         val events = mutableListOf<ViewfinderCameraEvent>()
@@ -577,6 +646,7 @@ class ViewfinderCameraDelegateTest {
     ): ViewfinderCameraDelegate {
         val delegate = ViewfinderCameraDelegateImpl(
             session = session,
+            zoomLensRouter = zoomLensRouter,
             entryPoint = cameraEntryPoint(showsCameraModeTabs = showsCameraModeTabs),
             inspectCameraLenses = inspectCameraLenses,
             resolveAvailableModes = resolveAvailableModes,
@@ -599,6 +669,28 @@ class ViewfinderCameraDelegateTest {
     }
 
     private companion object {
+        val TWO_REAR_CAMERAS = listOf(
+            rearCamera(cameraId = "main", focalLengthMm = 6f),
+            rearCamera(cameraId = "telephoto", focalLengthMm = 18f),
+        )
+
+        fun rearCamera(
+            cameraId: String,
+            focalLengthMm: Float,
+        ): RearCameraDescription {
+            return RearCameraDescription(
+                cameraId = cameraId,
+                lens = CameraLens(
+                    focalLengthMm = focalLengthMm,
+                    sensorWidthMm = 8f,
+                    sensorHeightMm = 6f,
+                ),
+                minZoomRatio = 1f,
+                maxZoomRatio = 10f,
+                memberCameraIds = emptySet(),
+            )
+        }
+
         val ZOOM = CameraZoom(
             zoomRatio = 2f,
             linearZoom = 0.5f,

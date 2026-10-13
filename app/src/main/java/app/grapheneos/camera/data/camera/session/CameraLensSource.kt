@@ -6,8 +6,10 @@ import androidx.annotation.OptIn
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraInfo
+import androidx.camera.core.CameraSelector
 import app.grapheneos.camera.data.camera.model.CameraLens
 import app.grapheneos.camera.data.camera.model.CameraLenses
+import app.grapheneos.camera.data.camera.model.RearCameraDescription
 import javax.inject.Inject
 
 /**
@@ -17,6 +19,9 @@ import javax.inject.Inject
  */
 interface CameraLensSource {
     fun lensesOf(cameraInfo: CameraInfo): CameraLenses?
+
+    /** The rear cameras among [cameraInfos], in the order given. */
+    fun rearCamerasOf(cameraInfos: List<CameraInfo>): List<RearCameraDescription>
 }
 
 internal class CameraLensSourceImpl @Inject constructor() : CameraLensSource {
@@ -32,6 +37,40 @@ internal class CameraLensSourceImpl @Inject constructor() : CameraLensSource {
                     lensOf(cameraInfo = physical)
                 },
             )
+        }
+    }
+
+    override fun rearCamerasOf(cameraInfos: List<CameraInfo>): List<RearCameraDescription> {
+        return cameraInfos
+            .filter { cameraInfo -> cameraInfo.lensFacing == CameraSelector.LENS_FACING_BACK }
+            .mapNotNull { cameraInfo -> describe(cameraInfo = cameraInfo) }
+    }
+
+    private fun describe(cameraInfo: CameraInfo): RearCameraDescription? {
+        val cameraId = cameraIdOf(cameraInfo = cameraInfo)
+        val zoomState = cameraInfo.zoomState.value
+
+        return when {
+            cameraId == null || zoomState == null -> null
+            else -> RearCameraDescription(
+                cameraId = cameraId,
+                lens = lensOf(cameraInfo = cameraInfo),
+                minZoomRatio = zoomState.minZoomRatio,
+                maxZoomRatio = zoomState.maxZoomRatio,
+                memberCameraIds = cameraInfo.physicalCameraInfos
+                    .mapNotNull { physical -> cameraIdOf(cameraInfo = physical) }
+                    .toSet(),
+            )
+        }
+    }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun cameraIdOf(cameraInfo: CameraInfo): String? {
+        return try {
+            Camera2CameraInfo.from(cameraInfo).cameraId
+        } catch (exception: IllegalArgumentException) {
+            Log.w(TAG, "Camera info carries no camera2 id", exception)
+            null
         }
     }
 

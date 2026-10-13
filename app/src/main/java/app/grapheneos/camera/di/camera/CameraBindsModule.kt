@@ -1,5 +1,7 @@
 package app.grapheneos.camera.di.camera
 
+import app.grapheneos.camera.data.camera.mapper.CameraLensMapMapper
+import app.grapheneos.camera.data.camera.mapper.CameraLensMapMapperImpl
 import app.grapheneos.camera.data.camera.mapper.CameraXConstantsMapper
 import app.grapheneos.camera.data.camera.mapper.CameraXConstantsMapperImpl
 import app.grapheneos.camera.data.camera.mapper.CameraXStateMapper
@@ -110,6 +112,12 @@ internal abstract class CameraBindsModule {
     abstract fun bindInspectCameraLenses(
         impl: InspectCameraLensesImpl,
     ): InspectCameraLenses
+
+    @Binds
+    @Reusable
+    abstract fun bindCameraLensMapMapper(
+        impl: CameraLensMapMapperImpl,
+    ): CameraLensMapMapper
 
     @Binds
     @Reusable

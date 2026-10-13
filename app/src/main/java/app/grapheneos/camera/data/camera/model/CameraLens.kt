@@ -59,3 +59,14 @@ data class CameraLensReport(
         return "${lens.focalLengthMm} mm on ${lens.sensorWidthMm} x ${lens.sensorHeightMm} mm"
     }
 }
+
+/**
+ * @param memberCameraIds the cameras this one is made of, which are not to be offered beside it
+ */
+data class RearCameraDescription(
+    val cameraId: String,
+    val lens: CameraLens?,
+    val minZoomRatio: Float,
+    val maxZoomRatio: Float,
+    val memberCameraIds: Set<String>,
+)

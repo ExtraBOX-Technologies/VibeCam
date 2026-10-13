@@ -308,6 +308,7 @@ class ViewfinderViewModel @AssistedInject constructor(
     private fun onCameraEvent(event: ViewfinderCameraEvent) {
         when (event) {
             is ViewfinderCameraEvent.ProviderReady -> startCamera(forced = event.forced)
+            is ViewfinderCameraEvent.LensChanged -> startCamera(forced = true)
         }
     }
 

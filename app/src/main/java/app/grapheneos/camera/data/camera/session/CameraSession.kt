@@ -115,6 +115,7 @@ internal class CameraSessionImpl @Inject constructor(
     private val videoQualityFeatureMapper: VideoQualityFeatureMapper,
     private val cameraXConstantsMapper: CameraXConstantsMapper,
     private val cameraXStateMapper: CameraXStateMapper,
+    private val cameraSelectorSource: CameraSelectorSource,
     private val inVideoSnapshotSupportResolver: InVideoSnapshotSupportResolver,
     private val snapshotProbeCache: SnapshotProbeCache,
 ) : CameraSession {
@@ -970,10 +971,7 @@ internal class CameraSessionImpl @Inject constructor(
     }
 
     private fun selectorFor(lensFacing: LensFacing): CameraSelector {
-        return when (lensFacing) {
-            LensFacing.FRONT -> FRONT_CAMERA_SELECTOR
-            LensFacing.BACK -> REAR_CAMERA_SELECTOR
-        }
+        return cameraSelectorSource.selectorFor(lensFacing = lensFacing)
     }
 
     companion object {
@@ -983,13 +981,5 @@ internal class CameraSessionImpl @Inject constructor(
         private const val QR_AUTOFOCUS_INTERVAL_MILLIS = 2000L
 
         private val DEFAULT_LENS_FACING = LensFacing.BACK
-
-        private val FRONT_CAMERA_SELECTOR: CameraSelector = CameraSelector.Builder()
-            .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
-            .build()
-
-        private val REAR_CAMERA_SELECTOR: CameraSelector = CameraSelector.Builder()
-            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-            .build()
     }
 }
