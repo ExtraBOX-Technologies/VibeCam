@@ -62,6 +62,7 @@ internal class ViewfinderUiStateMapperImpl @Inject constructor(
             capturedPreviewVisible = state.capture.isCapturedPreviewShown,
             qrResultVisible = state.session.isQrResultShown,
             gridType = settings.gridType,
+            zoomControlStyle = settings.zoomControlStyle,
             mode = state.mode,
             aspectRatio = state.aspectRatio(),
             isQrMode = state.isQrMode(),

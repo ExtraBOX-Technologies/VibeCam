@@ -47,6 +47,8 @@ internal data class StoredCameraSettings(
     val aspectRatio: StoredAspectRatio? = null,
     @SerialName("grid_type")
     val gridType: StoredGridType? = null,
+    @SerialName("zoom_control_style")
+    val zoomControlStyle: StoredZoomControlStyle? = null,
     @SerialName("focus_timeout_seconds")
     val focusTimeoutSeconds: Long? = null,
     @SerialName("self_timer_duration_seconds")
@@ -127,6 +129,40 @@ internal object StoredGridTypeSerializer : KSerializer<StoredGridType> {
             StoredGridType.THREE_BY_THREE -> "THREE_BY_THREE"
             StoredGridType.FOUR_BY_FOUR -> "FOUR_BY_FOUR"
             StoredGridType.GOLDEN_RATIO -> "GOLDEN_RATIO"
+        }
+    }
+}
+
+@Serializable(with = StoredZoomControlStyleSerializer::class)
+internal enum class StoredZoomControlStyle {
+    UNKNOWN,
+    SLIDER,
+    DIAL,
+}
+
+internal object StoredZoomControlStyleSerializer : KSerializer<StoredZoomControlStyle> {
+
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
+        serialName = "StoredZoomControlStyle",
+        kind = PrimitiveKind.STRING,
+    )
+
+    override fun serialize(encoder: Encoder, value: StoredZoomControlStyle) {
+        encoder.encodeString(wireName(value))
+    }
+
+    override fun deserialize(decoder: Decoder): StoredZoomControlStyle {
+        val stored = decoder.decodeString()
+
+        return StoredZoomControlStyle.entries.firstOrNull { wireName(it) == stored }
+            ?: StoredZoomControlStyle.UNKNOWN
+    }
+
+    private fun wireName(style: StoredZoomControlStyle): String {
+        return when (style) {
+            StoredZoomControlStyle.UNKNOWN -> "UNKNOWN"
+            StoredZoomControlStyle.SLIDER -> "SLIDER"
+            StoredZoomControlStyle.DIAL -> "DIAL"
         }
     }
 }

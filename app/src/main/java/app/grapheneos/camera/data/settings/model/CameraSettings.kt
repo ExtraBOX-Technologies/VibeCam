@@ -5,6 +5,7 @@ import app.grapheneos.camera.data.core.model.AspectRatio
 data class CameraSettings(
     val aspectRatio: AspectRatio = SettingsDefaults.ASPECT_RATIO,
     val gridType: GridType = SettingsDefaults.GRID_TYPE,
+    val zoomControlStyle: ZoomControlStyle = SettingsDefaults.ZOOM_CONTROL_STYLE,
     val focusTimeoutSeconds: Long = SettingsDefaults.FOCUS_TIMEOUT_SECONDS,
     val selfTimerDurationSeconds: Int = SettingsDefaults.SELF_TIMER_DURATION,
     val enableCameraSounds: Boolean = SettingsDefaults.CAMERA_SOUNDS,

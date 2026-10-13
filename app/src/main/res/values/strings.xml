@@ -18,6 +18,8 @@
     <string name="start_value_timer">00:00</string>
     <string name="zoom">Zoom</string>
     <string name="zoom_adjust">Adjust zoom</string>
+    <string name="zoom_dial">Zoom Dial</string>
+    <string name="zoom_dial_desc">Zoom with lens shortcuts and a dial instead of the slider</string>
     <string name="zoom_ratio_suffix" translatable="false">×</string>
     <string name="exposure_compensation">Exposure compensation</string>
     <string name="geo_tagging">Geo-tagging</string>

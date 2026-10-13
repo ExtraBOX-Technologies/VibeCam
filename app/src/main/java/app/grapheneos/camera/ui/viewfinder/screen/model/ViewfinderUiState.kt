@@ -7,6 +7,8 @@ import app.grapheneos.camera.R
 import app.grapheneos.camera.data.core.model.AspectRatio
 import app.grapheneos.camera.data.core.model.CameraMode
 import app.grapheneos.camera.data.settings.model.GridType
+import app.grapheneos.camera.data.settings.model.SettingsDefaults
+import app.grapheneos.camera.data.settings.model.ZoomControlStyle
 
 data class ViewfinderUiState(
     val qrOverlayVisible: Boolean = false,
@@ -37,6 +39,7 @@ data class ViewfinderUiState(
     val selfTimerCountdownVisible: Boolean = false,
     val selfTimerCancelVisible: Boolean = false,
     val gridType: GridType = GridType.NONE,
+    val zoomControlStyle: ZoomControlStyle = SettingsDefaults.ZOOM_CONTROL_STYLE,
     val mode: CameraMode = CameraMode.CAMERA,
     val aspectRatio: AspectRatio = AspectRatio.RATIO_4_3,
     val isQrMode: Boolean = false,

@@ -299,11 +299,11 @@
         <error line="658" column="21" source="standard:argument-list-wrapping" />
     </file>
     <file name="src/main/java/app/grapheneos/camera/ui/activities/MainActivity.kt">
-        <error line="651" column="100" source="standard:max-line-length" />
-        <error line="792" column="100" source="standard:max-line-length" />
+        <error line="656" column="100" source="standard:max-line-length" />
+        <error line="797" column="100" source="standard:max-line-length" />
     </file>
     <file name="src/main/java/app/grapheneos/camera/ui/activities/MoreSettings.kt">
-        <error line="390" column="101" source="standard:max-line-length" />
+        <error line="406" column="101" source="standard:max-line-length" />
     </file>
     <file name="src/main/java/app/grapheneos/camera/ui/activities/MoreSettingsSecure.kt">
         <error line="5" column="28" source="standard:class-signature" />

@@ -9,6 +9,8 @@ object SettingsDefaults {
 
     val GRID_TYPE = GridType.NONE
 
+    val ZOOM_CONTROL_STYLE = ZoomControlStyle.DIAL
+
     val VIDEO_QUALITY = VideoQuality.HIGHEST
 
     val ENABLED_BARCODE_FORMATS = setOf(BarcodeFormat.QR_CODE.name)

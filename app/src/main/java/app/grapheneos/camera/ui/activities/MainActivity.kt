@@ -54,6 +54,7 @@ import androidx.lifecycle.viewmodel.MutableCreationExtras
 import app.grapheneos.camera.R
 import app.grapheneos.camera.data.camera.model.PreviewTarget
 import app.grapheneos.camera.data.core.model.CameraMode
+import app.grapheneos.camera.data.settings.model.ZoomControlStyle
 import app.grapheneos.camera.data.settings.repository.SettingsRepository
 import app.grapheneos.camera.data.sound.player.CameraSoundPlayer
 import app.grapheneos.camera.databinding.ActivityMainBinding
@@ -199,7 +200,10 @@ open class MainActivity : AppCompatActivity() {
     val zoomBarPanel: LinearLayout
         get() = binding.zoomBarPanel
 
-    val isZoomDialEnabled: Boolean = true
+    val isZoomDialEnabled: Boolean
+        get() {
+            return viewfinder.uiState.value.zoomControlStyle == ZoomControlStyle.DIAL
+        }
 
     val exposureBar: ExposureBar
         get() = binding.exposureBar
@@ -266,8 +270,9 @@ open class MainActivity : AppCompatActivity() {
             CameraTheme(darkTheme = true) {
                 ViewfinderZoomDial(
                     zoom = zoom,
-                    visible = isZoomDialEnabled && uiState.cameraPreviewVisible &&
-                        !uiState.isQrMode && !uiState.selfTimerCountdownVisible,
+                    visible = uiState.zoomControlStyle == ZoomControlStyle.DIAL &&
+                        uiState.cameraPreviewVisible && !uiState.isQrMode &&
+                        !uiState.selfTimerCountdownVisible,
                     rotationDegrees = uiState.iconRotationDegrees,
                     onAction = viewfinder::onAction,
                 )

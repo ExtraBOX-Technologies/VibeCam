@@ -21,6 +21,7 @@ import app.grapheneos.camera.R
 import app.grapheneos.camera.data.media.repository.CapturedItemRepository
 import app.grapheneos.camera.data.media.store.StoragePrefsMigration
 import app.grapheneos.camera.data.settings.model.CameraSettings
+import app.grapheneos.camera.data.settings.model.ZoomControlStyle
 import app.grapheneos.camera.data.settings.repository.SettingsRepository
 import app.grapheneos.camera.databinding.MoreSettingsBinding
 import app.grapheneos.camera.ui.moresettings.NumInputFilter
@@ -228,6 +229,21 @@ open class MoreSettings :
         val csSetting = binding.cameraSoundsSetting
         csSetting.setOnClickListener {
             csSwitch.performClick()
+        }
+
+        val zoomDialSwitch = binding.zoomDialSwitch
+        zoomDialSwitch.isChecked = settings.zoomControlStyle == ZoomControlStyle.DIAL
+        zoomDialSwitch.setOnClickListener {
+            val style = when {
+                zoomDialSwitch.isChecked -> ZoomControlStyle.DIAL
+                else -> ZoomControlStyle.SLIDER
+            }
+
+            updateSettings { current -> current.copy(zoomControlStyle = style) }
+        }
+
+        binding.zoomDialSetting.setOnClickListener {
+            zoomDialSwitch.performClick()
         }
 
         val sIAPSetting = binding.saveImageAsPreviewSetting

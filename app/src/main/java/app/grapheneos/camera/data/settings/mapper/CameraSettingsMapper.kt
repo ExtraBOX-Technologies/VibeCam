@@ -4,9 +4,11 @@ import app.grapheneos.camera.data.core.model.AspectRatio
 import app.grapheneos.camera.data.settings.model.CameraSettings
 import app.grapheneos.camera.data.settings.model.GridType
 import app.grapheneos.camera.data.settings.model.SettingsDefaults
+import app.grapheneos.camera.data.settings.model.ZoomControlStyle
 import app.grapheneos.camera.data.settings.store.StoredAspectRatio
 import app.grapheneos.camera.data.settings.store.StoredCameraSettings
 import app.grapheneos.camera.data.settings.store.StoredGridType
+import app.grapheneos.camera.data.settings.store.StoredZoomControlStyle
 import javax.inject.Inject
 
 internal interface CameraSettingsMapper {
@@ -23,6 +25,7 @@ internal class CameraSettingsMapperImpl @Inject constructor() : CameraSettingsMa
         return CameraSettings(
             aspectRatio = map(stored.aspectRatio),
             gridType = map(stored.gridType),
+            zoomControlStyle = map(stored.zoomControlStyle),
             focusTimeoutSeconds = stored.focusTimeoutSeconds
                 ?: SettingsDefaults.FOCUS_TIMEOUT_SECONDS,
             selfTimerDurationSeconds = stored.selfTimerDurationSeconds
@@ -57,6 +60,9 @@ internal class CameraSettingsMapperImpl @Inject constructor() : CameraSettingsMa
                 ?.let(::map),
             gridType = settings.gridType
                 .takeUnless { it == SettingsDefaults.GRID_TYPE }
+                ?.let(::map),
+            zoomControlStyle = settings.zoomControlStyle
+                .takeUnless { it == SettingsDefaults.ZOOM_CONTROL_STYLE }
                 ?.let(::map),
             focusTimeoutSeconds = settings.focusTimeoutSeconds
                 .takeUnless { it == SettingsDefaults.FOCUS_TIMEOUT_SECONDS },
@@ -104,6 +110,24 @@ internal class CameraSettingsMapperImpl @Inject constructor() : CameraSettingsMa
         return when (aspectRatio) {
             AspectRatio.RATIO_4_3 -> StoredAspectRatio.RATIO_4_3
             AspectRatio.RATIO_16_9 -> StoredAspectRatio.RATIO_16_9
+        }
+    }
+
+    private fun map(stored: StoredZoomControlStyle?): ZoomControlStyle {
+        return when (stored) {
+            StoredZoomControlStyle.SLIDER -> ZoomControlStyle.SLIDER
+            StoredZoomControlStyle.DIAL -> ZoomControlStyle.DIAL
+
+            StoredZoomControlStyle.UNKNOWN,
+            null,
+            -> SettingsDefaults.ZOOM_CONTROL_STYLE
+        }
+    }
+
+    private fun map(style: ZoomControlStyle): StoredZoomControlStyle {
+        return when (style) {
+            ZoomControlStyle.SLIDER -> StoredZoomControlStyle.SLIDER
+            ZoomControlStyle.DIAL -> StoredZoomControlStyle.DIAL
         }
     }
 
