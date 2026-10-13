@@ -112,9 +112,11 @@ point differs. Treat any change to it as a change to the manifest contract.
 ./gradlew :app:dependencies            # after touching build files — check what CameraX resolved to
 ```
 
-**The debug build installs as `app.grapheneos.camera.dev`.** The plain `app.grapheneos.camera`
-package is the stock system app that ships with the OS. Install with `./gradlew installDebug` and
-verify against `.dev` — verifying against the stock package makes a working change look dead.
+**The debug build installs as `tech.extrabox.vibecam.dev`.** The application id is this fork's
+own, while the code stays in the `app.grapheneos.camera` package so that it rebases onto upstream.
+The stock `app.grapheneos.camera` package is the system app that ships with GrapheneOS. Install
+with `./gradlew installDebug` and verify against `tech.extrabox.vibecam.dev` — verifying against
+the stock package makes a working change look dead.
 
 ---
 

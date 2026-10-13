@@ -124,7 +124,7 @@ android {
     namespace = "app.grapheneos.camera"
 
     defaultConfig {
-        applicationId = "app.grapheneos.camera"
+        applicationId = "tech.extrabox.vibecam"
         minSdk = 29
         targetSdk = 37
         versionCode = 94
@@ -143,12 +143,12 @@ android {
             if (useKeystoreProperties) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            resValue("string", "app_name", "Camera")
+            resValue("string", "app_name", "VibeCam")
         }
 
         getByName("debug") {
             applicationIdSuffix = ".dev"
-            resValue("string", "app_name", "Camera d")
+            resValue("string", "app_name", "VibeCam d")
             // isDebuggable = false
         }
 
