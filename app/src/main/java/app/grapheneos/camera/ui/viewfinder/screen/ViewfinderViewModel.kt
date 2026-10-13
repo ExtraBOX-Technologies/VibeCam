@@ -187,6 +187,7 @@ class ViewfinderViewModel @AssistedInject constructor(
             is CameraAction.FocusKeyPressed -> cameraDelegate.cancelFocus()
             is CameraAction.Preview -> onPreviewAction(action)
             is CameraAction.ZoomSliderDragged -> cameraDelegate.setLinearZoom(action.linearZoom)
+            is CameraAction.ZoomRatioRequested -> cameraDelegate.setZoomRatio(action.zoomRatio)
 
             is CameraAction.ExposureSliderDragged -> {
                 cameraDelegate.setExposureCompensation(action.compensationIndex)

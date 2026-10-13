@@ -123,7 +123,13 @@ internal class ViewfinderEffectHandlerImpl(
     private fun showFocus(effect: Effect.Preview.ShowFocus) {
         activity.animateFocusRing(effect.x, effect.y)
         activity.exposureBar.showPanel()
-        activity.zoomBar.showPanel()
+        showZoomPanel()
+    }
+
+    private fun showZoomPanel() {
+        if (!activity.isZoomDialEnabled) {
+            activity.zoomBar.showPanel()
+        }
     }
 
     private fun flashPreview(selfIlluminate: Boolean) {
@@ -290,7 +296,7 @@ internal class ViewfinderEffectHandlerImpl(
 
     private fun handlePanel(effect: Effect.Panel) {
         when (effect) {
-            is Effect.Panel.ShowZoom -> activity.zoomBar.showPanel()
+            is Effect.Panel.ShowZoom -> showZoomPanel()
             is Effect.Panel.HideZoom -> activity.zoomBar.hidePanel()
             is Effect.Panel.HideExposure -> activity.exposureBar.hidePanel()
         }

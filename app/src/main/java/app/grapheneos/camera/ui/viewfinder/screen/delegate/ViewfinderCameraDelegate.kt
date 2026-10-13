@@ -64,6 +64,7 @@ interface ViewfinderCameraDelegate {
     fun stepZoom(step: Float)
     fun scaleZoom(scaleFactor: Float)
     fun setLinearZoom(linearZoom: Float)
+    fun setZoomRatio(zoomRatio: Float)
     fun setExposureCompensation(compensationIndex: Int)
 
     fun focusAt(x: Float, y: Float)
@@ -289,6 +290,10 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
 
     override fun setLinearZoom(linearZoom: Float) {
         session.setLinearZoom(linearZoom)
+    }
+
+    override fun setZoomRatio(zoomRatio: Float) {
+        session.setZoomRatio(zoomRatio)
     }
 
     override fun setExposureCompensation(compensationIndex: Int) {

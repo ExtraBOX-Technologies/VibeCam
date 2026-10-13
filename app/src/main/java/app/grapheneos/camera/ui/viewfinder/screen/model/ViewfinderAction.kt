@@ -28,6 +28,19 @@ sealed interface ViewfinderAction {
             val linearZoom: Float,
         ) : CameraAction
 
+        sealed interface ZoomRatioRequested : CameraAction {
+
+            val zoomRatio: Float
+
+            data class DialTurned(
+                override val zoomRatio: Float,
+            ) : ZoomRatioRequested
+
+            data class StopClicked(
+                override val zoomRatio: Float,
+            ) : ZoomRatioRequested
+        }
+
         data class ExposureSliderDragged(
             val compensationIndex: Int,
         ) : CameraAction

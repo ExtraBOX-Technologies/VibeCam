@@ -36,6 +36,7 @@ import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.view.PreviewView
 import androidx.camera.view.PreviewView.StreamState
+import androidx.compose.runtime.getValue
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -45,6 +46,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updateMargins
 import androidx.lifecycle.DEFAULT_ARGS_KEY
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -60,6 +62,7 @@ import app.grapheneos.camera.domain.qr.BarcodeFormats
 import app.grapheneos.camera.ui.common.TunePlayer
 import app.grapheneos.camera.ui.common.dialog.SettingsDialog
 import app.grapheneos.camera.ui.common.dialog.showMoreQrFormatOptions
+import app.grapheneos.camera.ui.core.CameraTheme
 import app.grapheneos.camera.ui.viewfinder.components.BottomTabLayout
 import app.grapheneos.camera.ui.viewfinder.components.CaptureButton
 import app.grapheneos.camera.ui.viewfinder.components.CountDownTimerUI
@@ -67,6 +70,7 @@ import app.grapheneos.camera.ui.viewfinder.components.CustomGrid
 import app.grapheneos.camera.ui.viewfinder.components.ExposureBar
 import app.grapheneos.camera.ui.viewfinder.components.QROverlay
 import app.grapheneos.camera.ui.viewfinder.components.QRToggle
+import app.grapheneos.camera.ui.viewfinder.components.ViewfinderZoomDial
 import app.grapheneos.camera.ui.viewfinder.components.ZoomBar
 import app.grapheneos.camera.ui.viewfinder.screen.PreviewFrameHolder
 import app.grapheneos.camera.ui.viewfinder.screen.PreviewFrameHolderImpl
@@ -195,6 +199,8 @@ open class MainActivity : AppCompatActivity() {
     val zoomBarPanel: LinearLayout
         get() = binding.zoomBarPanel
 
+    val isZoomDialEnabled: Boolean = true
+
     val exposureBar: ExposureBar
         get() = binding.exposureBar
 
@@ -252,6 +258,44 @@ open class MainActivity : AppCompatActivity() {
     }
 
     // The blurred still that stands in for the preview whenever the camera is not streaming.
+    private fun setUpZoomDial() {
+        binding.zoomDial.setContent {
+            val uiState by viewfinder.uiState.collectAsStateWithLifecycle()
+            val zoom by viewfinder.zoomUiState.collectAsStateWithLifecycle()
+
+            CameraTheme(darkTheme = true) {
+                ViewfinderZoomDial(
+                    zoom = zoom,
+                    visible = isZoomDialEnabled && uiState.cameraPreviewVisible &&
+                        !uiState.isQrMode && !uiState.selfTimerCountdownVisible,
+                    rotationDegrees = uiState.iconRotationDegrees,
+                    onAction = viewfinder::onAction,
+                )
+            }
+        }
+        binding.root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            liftZoomDialAboveControls()
+        }
+    }
+
+    /**
+     * A preview taller than the space above the controls runs on under them, and the dial at its
+     * bottom edge would be covered: it moves up to clear the shutter row and the row above it.
+     */
+    private fun liftZoomDialAboveControls() {
+        val previewLocation = IntArray(2)
+        val controlsLocation = IntArray(2)
+
+        previewView.getLocationInWindow(previewLocation)
+        binding.threeButtons.getLocationInWindow(controlsLocation)
+
+        val previewBottom = previewLocation[1] + previewView.height
+        val clearance = ZOOM_DIAL_CLEARANCE_DP * resources.displayMetrics.density
+        val covered = previewBottom - (controlsLocation[1] - clearance)
+
+        binding.zoomDial.translationY = -covered.coerceAtLeast(0f)
+    }
+
     private fun showPreviewTransition() {
         transitionShown = true
         previewGrid.visibility = View.INVISIBLE
@@ -597,6 +641,7 @@ open class MainActivity : AppCompatActivity() {
         }
 
         zoomBar.setMainActivity(this)
+        setUpZoomDial()
         exposureBar.setMainActivity(this)
 
         settingsIcon.setOnClickListener {
@@ -955,5 +1000,6 @@ open class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val LENS_SWITCH_ANIMATION_DURATION = 400L
+        const val ZOOM_DIAL_CLEARANCE_DP = 56
     }
 }

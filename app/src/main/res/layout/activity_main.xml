@@ -172,6 +172,14 @@
                     app:layout_constraintEnd_toEndOf="@id/preview"
                     app:layout_constraintBottom_toBottomOf="@id/preview"/>
 
+                <androidx.compose.ui.platform.ComposeView
+                    android:id="@+id/zoom_dial"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="@id/preview"
+                    app:layout_constraintEnd_toEndOf="@id/preview"
+                    app:layout_constraintBottom_toBottomOf="@id/preview"/>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </FrameLayout>
