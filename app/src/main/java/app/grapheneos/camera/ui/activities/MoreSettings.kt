@@ -1,5 +1,7 @@
 package app.grapheneos.camera.ui.activities
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
@@ -17,7 +19,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import app.grapheneos.camera.R
+import app.grapheneos.camera.data.camera.model.LensDataStatus
+import app.grapheneos.camera.data.camera.repository.LensReportRepository
 import app.grapheneos.camera.data.media.repository.CapturedItemRepository
 import app.grapheneos.camera.data.media.store.StoragePrefsMigration
 import app.grapheneos.camera.data.settings.model.CameraSettings
@@ -43,6 +48,9 @@ open class MoreSettings :
 
     @Inject
     lateinit var capturedItemRepository: CapturedItemRepository
+
+    @Inject
+    lateinit var lensReportRepository: LensReportRepository
 
     private var isInCaptureMode = false
 
@@ -245,6 +253,7 @@ open class MoreSettings :
         binding.zoomDialSetting.setOnClickListener {
             zoomDialSwitch.performClick()
         }
+        setUpLensDataNotice()
 
         val sIAPSetting = binding.saveImageAsPreviewSetting
         sIAPSetting.setOnClickListener {
@@ -395,6 +404,21 @@ open class MoreSettings :
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    private fun setUpLensDataNotice() {
+        val report = lensReportRepository.report.value
+        val notice = binding.zoomDialLensNotice
+
+        notice.isVisible = report?.status == LensDataStatus.INCONSISTENT
+        notice.setOnClickListener {
+            val clipboard = getSystemService(ClipboardManager::class.java)
+            val details = report?.details().orEmpty()
+
+            clipboard.setPrimaryClip(
+                ClipData.newPlainText(getString(R.string.zoom_lens_data_label), details),
+            )
+        }
     }
 
     companion object {

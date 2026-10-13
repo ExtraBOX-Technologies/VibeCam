@@ -4,6 +4,8 @@ import app.grapheneos.camera.data.camera.mapper.CameraXConstantsMapper
 import app.grapheneos.camera.data.camera.mapper.CameraXConstantsMapperImpl
 import app.grapheneos.camera.data.camera.mapper.CameraXStateMapper
 import app.grapheneos.camera.data.camera.mapper.CameraXStateMapperImpl
+import app.grapheneos.camera.data.camera.mapper.LensDataStatusMapper
+import app.grapheneos.camera.data.camera.mapper.LensDataStatusMapperImpl
 import app.grapheneos.camera.data.camera.mapper.LensZoomRatioMapper
 import app.grapheneos.camera.data.camera.mapper.LensZoomRatioMapperImpl
 import app.grapheneos.camera.data.camera.mapper.RecordingEventMapper
@@ -14,6 +16,8 @@ import app.grapheneos.camera.data.camera.repository.CameraProviderSource
 import app.grapheneos.camera.data.camera.repository.CameraProviderSourceImpl
 import app.grapheneos.camera.data.camera.repository.ExtensionAvailabilityRepository
 import app.grapheneos.camera.data.camera.repository.ExtensionAvailabilityRepositoryImpl
+import app.grapheneos.camera.data.camera.repository.LensReportRepository
+import app.grapheneos.camera.data.camera.repository.LensReportRepositoryImpl
 import app.grapheneos.camera.data.camera.session.CameraLensSource
 import app.grapheneos.camera.data.camera.session.CameraLensSourceImpl
 import app.grapheneos.camera.data.camera.session.CameraSessionPlanFactory
@@ -26,8 +30,8 @@ import app.grapheneos.camera.data.camera.session.JpegExtractor
 import app.grapheneos.camera.data.camera.session.JpegExtractorImpl
 import app.grapheneos.camera.data.camera.session.SnapshotProbeCache
 import app.grapheneos.camera.data.camera.session.SnapshotProbeCacheImpl
-import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatios
-import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatiosImpl
+import app.grapheneos.camera.domain.camera.usecase.InspectCameraLenses
+import app.grapheneos.camera.domain.camera.usecase.InspectCameraLensesImpl
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModes
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModesImpl
 import dagger.Binds
@@ -103,9 +107,21 @@ internal abstract class CameraBindsModule {
 
     @Binds
     @Reusable
-    abstract fun bindReadLensZoomRatios(
-        impl: ReadLensZoomRatiosImpl,
-    ): ReadLensZoomRatios
+    abstract fun bindInspectCameraLenses(
+        impl: InspectCameraLensesImpl,
+    ): InspectCameraLenses
+
+    @Binds
+    @Reusable
+    abstract fun bindLensDataStatusMapper(
+        impl: LensDataStatusMapperImpl,
+    ): LensDataStatusMapper
+
+    @Binds
+    @Singleton
+    abstract fun bindLensReportRepository(
+        impl: LensReportRepositoryImpl,
+    ): LensReportRepository
 
     @Binds
     @Reusable

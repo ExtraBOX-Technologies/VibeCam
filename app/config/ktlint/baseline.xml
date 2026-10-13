@@ -303,7 +303,7 @@
         <error line="797" column="100" source="standard:max-line-length" />
     </file>
     <file name="src/main/java/app/grapheneos/camera/ui/activities/MoreSettings.kt">
-        <error line="406" column="101" source="standard:max-line-length" />
+        <error line="430" column="101" source="standard:max-line-length" />
     </file>
     <file name="src/main/java/app/grapheneos/camera/ui/activities/MoreSettingsSecure.kt">
         <error line="5" column="28" source="standard:class-signature" />

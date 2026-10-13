@@ -3,8 +3,10 @@ package app.grapheneos.camera.ui.viewfinder.screen.delegate
 import android.view.Surface
 import app.grapheneos.camera.R
 import app.grapheneos.camera.data.camera.model.CameraExposure
+import app.grapheneos.camera.data.camera.model.CameraLensReport
 import app.grapheneos.camera.data.camera.model.CameraSessionEvent
 import app.grapheneos.camera.data.camera.model.CameraZoom
+import app.grapheneos.camera.data.camera.model.LensDataStatus
 import app.grapheneos.camera.data.camera.model.LensFacing
 import app.grapheneos.camera.data.camera.session.CameraSession
 import app.grapheneos.camera.data.core.model.CameraMode
@@ -13,7 +15,7 @@ import app.grapheneos.camera.data.core.model.FlashMode
 import app.grapheneos.camera.data.core.model.VideoQuality
 import app.grapheneos.camera.data.settings.model.CameraSettings
 import app.grapheneos.camera.data.sound.model.CameraSound
-import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatios
+import app.grapheneos.camera.domain.camera.usecase.InspectCameraLenses
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModes
 import app.grapheneos.camera.domain.camera.usecase.ResolveDroppedVideoQuality
 import app.grapheneos.camera.domain.sound.usecase.PlayCameraSound
@@ -62,7 +64,7 @@ class ViewfinderCameraDelegateTest {
         thumbnailSize = ThumbnailSize(width = 1, height = 1),
     )
     private val session = mockk<CameraSession>(relaxed = true)
-    private val readLensZoomRatios = mockk<ReadLensZoomRatios>(relaxed = true)
+    private val inspectCameraLenses = mockk<InspectCameraLenses>(relaxed = true)
     private val resolveAvailableModes = mockk<ResolveAvailableModes>()
     private val resolveDroppedVideoQuality = mockk<ResolveDroppedVideoQuality>()
     private val playCameraSound = mockk<PlayCameraSound>(relaxed = true)
@@ -321,12 +323,36 @@ class ViewfinderCameraDelegateTest {
     @Test
     fun zoomStateLoaded_publishesWhereTheLensesTakeOver() {
         every { session.zoom } returns ZOOM
-        every { readLensZoomRatios(session = session) } returns listOf(0.5f, 1f, 5f)
+        every { inspectCameraLenses(session = session) } returns lensReport(
+            status = LensDataStatus.CONSISTENT,
+        )
         createAttachedDelegate()
 
         sessionEvents.tryEmit(CameraSessionEvent.ZoomStateLoaded)
 
         assertEquals(listOf(0.5f, 1f, 5f), stateHolder.state.value.session.lensZoomRatios)
+    }
+
+    @Test
+    fun zoomStateLoaded_withLensDataThatDoesNotAddUp_publishesNoLensStops() {
+        every { session.zoom } returns ZOOM
+        every { inspectCameraLenses(session = session) } returns lensReport(
+            status = LensDataStatus.INCONSISTENT,
+        )
+        createAttachedDelegate()
+
+        sessionEvents.tryEmit(CameraSessionEvent.ZoomStateLoaded)
+
+        assertEquals(emptyList<Float>(), stateHolder.state.value.session.lensZoomRatios)
+    }
+
+    private fun lensReport(status: LensDataStatus): CameraLensReport {
+        return CameraLensReport(
+            lenses = null,
+            zoom = ZOOM,
+            zoomRatios = listOf(0.5f, 1f, 5f),
+            status = status,
+        )
     }
 
     @Test
@@ -552,7 +578,7 @@ class ViewfinderCameraDelegateTest {
         val delegate = ViewfinderCameraDelegateImpl(
             session = session,
             entryPoint = cameraEntryPoint(showsCameraModeTabs = showsCameraModeTabs),
-            readLensZoomRatios = readLensZoomRatios,
+            inspectCameraLenses = inspectCameraLenses,
             resolveAvailableModes = resolveAvailableModes,
             resolveDroppedVideoQuality = resolveDroppedVideoQuality,
             playCameraSound = playCameraSound,
