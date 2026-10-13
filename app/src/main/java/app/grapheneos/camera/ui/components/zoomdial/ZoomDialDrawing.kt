@@ -21,6 +21,12 @@ private const val FADE_TICKS = 2f
 private const val LABEL_HIDDEN_TICKS = 0.6f
 private const val LABEL_SHOWN_TICKS = 1.2f
 
+/**
+ * The readout's unit sign hangs past its number, on the side its text is shifted to, so a label
+ * on that side gives way sooner.
+ */
+private const val UNIT_SIGN_TICKS = 0.8f
+
 private const val DEGREES_PER_RADIAN = 57.29578f
 
 internal fun DrawScope.drawZoomDial(
@@ -51,6 +57,7 @@ internal fun DrawScope.drawZoomDial(
             position = position,
             scale = scale,
             labels = labels,
+            unitSignOffset = valueLabel.offsetX,
             labelRotation = labelRotation,
             geometry = geometry,
             metrics = metrics,
@@ -138,6 +145,7 @@ private fun DrawScope.drawLabels(
     position: Float,
     scale: ZoomBarScale,
     labels: List<CenteredText>,
+    unitSignOffset: Float,
     labelRotation: Float,
     geometry: ZoomDialGeometry,
     metrics: ZoomDialMetrics,
@@ -150,7 +158,11 @@ private fun DrawScope.drawLabels(
             position = position,
             isRtl = layoutDirection == LayoutDirection.Rtl,
         )
-        val alpha = labelAlpha(distance = abs(markPosition - position)) * geometry.alpha(
+        val readoutAlpha = labelAlpha(
+            distance = abs(markPosition - position),
+            isOnUnitSignSide = angle * unitSignOffset > 0f,
+        )
+        val alpha = readoutAlpha * geometry.alpha(
             angle = angle,
             fadeAngle = FADE_TICKS * geometry.tickAngle,
         )
@@ -194,8 +206,16 @@ private fun DrawScope.drawPointer(
     )
 }
 
-private fun labelAlpha(distance: Float): Float {
-    val shown = (distance - LABEL_HIDDEN_TICKS) / (LABEL_SHOWN_TICKS - LABEL_HIDDEN_TICKS)
+private fun labelAlpha(
+    distance: Float,
+    isOnUnitSignSide: Boolean,
+): Float {
+    val clearance = when {
+        isOnUnitSignSide -> UNIT_SIGN_TICKS
+        else -> 0f
+    }
+    val shown = (distance - clearance - LABEL_HIDDEN_TICKS) /
+        (LABEL_SHOWN_TICKS - LABEL_HIDDEN_TICKS)
 
     return shown.coerceIn(0f, 1f)
 }
