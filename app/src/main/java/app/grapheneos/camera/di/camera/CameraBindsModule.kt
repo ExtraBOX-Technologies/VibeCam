@@ -4,6 +4,8 @@ import app.grapheneos.camera.data.camera.mapper.CameraXConstantsMapper
 import app.grapheneos.camera.data.camera.mapper.CameraXConstantsMapperImpl
 import app.grapheneos.camera.data.camera.mapper.CameraXStateMapper
 import app.grapheneos.camera.data.camera.mapper.CameraXStateMapperImpl
+import app.grapheneos.camera.data.camera.mapper.LensZoomRatioMapper
+import app.grapheneos.camera.data.camera.mapper.LensZoomRatioMapperImpl
 import app.grapheneos.camera.data.camera.mapper.RecordingEventMapper
 import app.grapheneos.camera.data.camera.mapper.RecordingEventMapperImpl
 import app.grapheneos.camera.data.camera.mapper.VideoQualityFeatureMapper
@@ -12,6 +14,8 @@ import app.grapheneos.camera.data.camera.repository.CameraProviderSource
 import app.grapheneos.camera.data.camera.repository.CameraProviderSourceImpl
 import app.grapheneos.camera.data.camera.repository.ExtensionAvailabilityRepository
 import app.grapheneos.camera.data.camera.repository.ExtensionAvailabilityRepositoryImpl
+import app.grapheneos.camera.data.camera.session.CameraLensSource
+import app.grapheneos.camera.data.camera.session.CameraLensSourceImpl
 import app.grapheneos.camera.data.camera.session.CameraSessionPlanFactory
 import app.grapheneos.camera.data.camera.session.CameraSessionPlanFactoryImpl
 import app.grapheneos.camera.data.camera.session.FeatureCombinationSupport
@@ -22,6 +26,8 @@ import app.grapheneos.camera.data.camera.session.JpegExtractor
 import app.grapheneos.camera.data.camera.session.JpegExtractorImpl
 import app.grapheneos.camera.data.camera.session.SnapshotProbeCache
 import app.grapheneos.camera.data.camera.session.SnapshotProbeCacheImpl
+import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatios
+import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatiosImpl
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModes
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModesImpl
 import dagger.Binds
@@ -46,6 +52,18 @@ internal abstract class CameraBindsModule {
     abstract fun bindCameraProviderSource(
         impl: CameraProviderSourceImpl,
     ): CameraProviderSource
+
+    @Binds
+    @Reusable
+    abstract fun bindCameraLensSource(
+        impl: CameraLensSourceImpl,
+    ): CameraLensSource
+
+    @Binds
+    @Reusable
+    abstract fun bindLensZoomRatioMapper(
+        impl: LensZoomRatioMapperImpl,
+    ): LensZoomRatioMapper
 
     @Binds
     @Reusable
@@ -82,6 +100,12 @@ internal abstract class CameraBindsModule {
     abstract fun bindCameraSessionPlanFactory(
         impl: CameraSessionPlanFactoryImpl,
     ): CameraSessionPlanFactory
+
+    @Binds
+    @Reusable
+    abstract fun bindReadLensZoomRatios(
+        impl: ReadLensZoomRatiosImpl,
+    ): ReadLensZoomRatios
 
     @Binds
     @Reusable

@@ -77,6 +77,36 @@ class ZoomUiStateMapperTest {
     }
 
     @Test
+    fun stops_followTheLenses_whenTheCameraDescribesThem() {
+        val state = stateWith(
+            zoom = CameraZoom(
+                zoomRatio = 1f,
+                linearZoom = 0f,
+                minZoomRatio = 0.5078f,
+                maxZoomRatio = 30f,
+            ),
+            lensZoomRatios = listOf(0.508f, 1f, 1.016f, 2f, 4.508f, 9.016f),
+        )
+
+        assertEquals(listOf(0.5078f, 1f, 2f, 4.508f), mapper.map(state).stops)
+    }
+
+    @Test
+    fun stops_leaveOutLensesOutsideTheRange() {
+        val state = stateWith(
+            zoom = CameraZoom(
+                zoomRatio = 1f,
+                linearZoom = 0f,
+                minZoomRatio = 1f,
+                maxZoomRatio = 4f,
+            ),
+            lensZoomRatios = listOf(0.5f, 1.02f, 4.5f),
+        )
+
+        assertEquals(listOf(1f), mapper.map(state).stops)
+    }
+
+    @Test
     fun zoom_isAdjustableOnlyOverARange() {
         assertEquals(false, ZoomUiState().isAdjustable)
         assertEquals(true, ZoomUiState(minZoomRatio = 1f, maxZoomRatio = 8f).isAdjustable)
@@ -87,11 +117,17 @@ class ZoomUiStateMapperTest {
         assertEquals(ZoomUiState(), mapper.map(stateWith(zoom = null)))
     }
 
-    private fun stateWith(zoom: CameraZoom?): ViewfinderState {
+    private fun stateWith(
+        zoom: CameraZoom?,
+        lensZoomRatios: List<Float> = emptyList(),
+    ): ViewfinderState {
         return ViewfinderState(
             mode = CameraMode.CAMERA,
             requiresVideoModeOnly = false,
-            session = ViewfinderSessionState(zoom = zoom),
+            session = ViewfinderSessionState(
+                zoom = zoom,
+                lensZoomRatios = lensZoomRatios,
+            ),
         )
     }
 }

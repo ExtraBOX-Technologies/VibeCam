@@ -11,6 +11,7 @@ import app.grapheneos.camera.data.core.model.ExtensionMode
 import app.grapheneos.camera.data.core.model.FlashMode
 import app.grapheneos.camera.data.sound.model.CameraSound
 import app.grapheneos.camera.di.core.MainImmediateDispatcher
+import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatios
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModes
 import app.grapheneos.camera.domain.camera.usecase.ResolveDroppedVideoQuality
 import app.grapheneos.camera.domain.core.model.CameraEntryPoint
@@ -77,6 +78,7 @@ interface ViewfinderCameraDelegate {
 internal class ViewfinderCameraDelegateImpl @Inject constructor(
     private val session: CameraSession,
     private val entryPoint: CameraEntryPoint,
+    private val readLensZoomRatios: ReadLensZoomRatios,
     private val resolveAvailableModes: ResolveAvailableModes,
     private val resolveDroppedVideoQuality: ResolveDroppedVideoQuality,
     private val playCameraSound: PlayCameraSound,
@@ -355,7 +357,7 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
 
     private fun onSessionEvent(event: CameraSessionEvent) {
         when (event) {
-            is CameraSessionEvent.ZoomStateLoaded -> refreshZoom()
+            is CameraSessionEvent.ZoomStateLoaded -> loadZoom()
             is CameraSessionEvent.FeaturesSelected -> onFeaturesSelected(event)
             is CameraSessionEvent.QrCodeScanned -> showQrResult(event.text)
 
@@ -391,6 +393,19 @@ internal class ViewfinderCameraDelegateImpl @Inject constructor(
         ) ?: return
 
         postEffect(Effect.ShowVideoQualityUnsupported(droppedQuality))
+    }
+
+    private fun loadZoom() {
+        val lensZoomRatios = readLensZoomRatios(session = session)
+
+        stateHolder.update {
+            it.copy(
+                session = it.session.copy(
+                    zoom = session.zoom,
+                    lensZoomRatios = lensZoomRatios,
+                ),
+            )
+        }
     }
 
     private fun refreshZoom() {

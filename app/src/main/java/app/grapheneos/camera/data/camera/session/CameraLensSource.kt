@@ -1,0 +1,65 @@
+package app.grapheneos.camera.data.camera.session
+
+import android.hardware.camera2.CameraCharacteristics
+import android.util.Log
+import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
+import androidx.camera.core.CameraInfo
+import app.grapheneos.camera.data.camera.model.CameraLens
+import app.grapheneos.camera.data.camera.model.CameraLenses
+import javax.inject.Inject
+
+/**
+ * The lenses behind a camera, as the device reports them. Null when the camera carries no camera2
+ * characteristics or does not describe its own lens; a physical lens it does not describe is left
+ * out.
+ */
+interface CameraLensSource {
+    fun lensesOf(cameraInfo: CameraInfo): CameraLenses?
+}
+
+internal class CameraLensSourceImpl @Inject constructor() : CameraLensSource {
+
+    override fun lensesOf(cameraInfo: CameraInfo): CameraLenses? {
+        val main = lensOf(cameraInfo = cameraInfo)
+
+        return when (main) {
+            null -> null
+            else -> CameraLenses(
+                main = main,
+                physical = cameraInfo.physicalCameraInfos.mapNotNull { physical ->
+                    lensOf(cameraInfo = physical)
+                },
+            )
+        }
+    }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun lensOf(cameraInfo: CameraInfo): CameraLens? {
+        return try {
+            val camera2Info = Camera2CameraInfo.from(cameraInfo)
+            val focalLength = camera2Info
+                .getCameraCharacteristic(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
+                ?.firstOrNull()
+            val sensorSize = camera2Info
+                .getCameraCharacteristic(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE)
+
+            when {
+                focalLength == null || sensorSize == null -> null
+                else -> CameraLens(
+                    focalLengthMm = focalLength,
+                    sensorWidthMm = sensorSize.width,
+                    sensorHeightMm = sensorSize.height,
+                )
+            }
+        } catch (exception: IllegalArgumentException) {
+            Log.w(TAG, "Camera info carries no camera2 characteristics", exception)
+            null
+        }
+    }
+
+    private companion object {
+        const val TAG = "CameraLensSource"
+    }
+}

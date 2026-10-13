@@ -16,6 +16,7 @@ data class ViewfinderSessionState(
     val isZslSupported: Boolean = false,
     val sensorOrientationDegrees: Int? = null,
     val zoom: CameraZoom? = null,
+    val lensZoomRatios: List<Float> = emptyList(),
     val exposure: CameraExposure? = null,
     val videoQualities: List<VideoQuality> = emptyList(),
     val availableModes: Set<CameraMode> = emptySet(),

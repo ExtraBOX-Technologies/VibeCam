@@ -13,6 +13,7 @@ import app.grapheneos.camera.data.core.model.FlashMode
 import app.grapheneos.camera.data.core.model.VideoQuality
 import app.grapheneos.camera.data.settings.model.CameraSettings
 import app.grapheneos.camera.data.sound.model.CameraSound
+import app.grapheneos.camera.domain.camera.usecase.ReadLensZoomRatios
 import app.grapheneos.camera.domain.camera.usecase.ResolveAvailableModes
 import app.grapheneos.camera.domain.camera.usecase.ResolveDroppedVideoQuality
 import app.grapheneos.camera.domain.sound.usecase.PlayCameraSound
@@ -61,6 +62,7 @@ class ViewfinderCameraDelegateTest {
         thumbnailSize = ThumbnailSize(width = 1, height = 1),
     )
     private val session = mockk<CameraSession>(relaxed = true)
+    private val readLensZoomRatios = mockk<ReadLensZoomRatios>(relaxed = true)
     private val resolveAvailableModes = mockk<ResolveAvailableModes>()
     private val resolveDroppedVideoQuality = mockk<ResolveDroppedVideoQuality>()
     private val playCameraSound = mockk<PlayCameraSound>(relaxed = true)
@@ -317,6 +319,17 @@ class ViewfinderCameraDelegateTest {
     }
 
     @Test
+    fun zoomStateLoaded_publishesWhereTheLensesTakeOver() {
+        every { session.zoom } returns ZOOM
+        every { readLensZoomRatios(session = session) } returns listOf(0.5f, 1f, 5f)
+        createAttachedDelegate()
+
+        sessionEvents.tryEmit(CameraSessionEvent.ZoomStateLoaded)
+
+        assertEquals(listOf(0.5f, 1f, 5f), stateHolder.state.value.session.lensZoomRatios)
+    }
+
+    @Test
     fun zoomStateChanged_publishesTheZoomAndShowsItsPanel() {
         every { session.zoom } returns ZOOM
         createAttachedDelegate()
@@ -539,6 +552,7 @@ class ViewfinderCameraDelegateTest {
         val delegate = ViewfinderCameraDelegateImpl(
             session = session,
             entryPoint = cameraEntryPoint(showsCameraModeTabs = showsCameraModeTabs),
+            readLensZoomRatios = readLensZoomRatios,
             resolveAvailableModes = resolveAvailableModes,
             resolveDroppedVideoQuality = resolveDroppedVideoQuality,
             playCameraSound = playCameraSound,
