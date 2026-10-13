@@ -15,6 +15,6 @@
       <circle cx="54" cy="60" r="12.5" fill="none" stroke="#FFFFFF" stroke-width="3.4"/>
       <circle cx="54" cy="60" r="5.5" fill="#C2C7FF"/>
   </g>
-  <text x="590" y="330" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="118" font-weight="700" fill="#FFFFFF">VibeCam</text>
-  <text x="596" y="404" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="44" fill="#C2C7FF">It’s a vibe.</text>
+  <text x="590" y="306" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="118" font-weight="700" fill="#FFFFFF">VibeCam</text>
+  <text x="594" y="408" font-family="-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="78" font-weight="500" fill="#C2C7FF">It’s a vibe.</text>
 </svg>
