@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- VibeCam launcher icon. Canvas is Android's 108 unit adaptive-icon grid; launchers show the middle 72. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 108 108">
+  <g>
+    <line x1="30.62" y1="46.5" x2="34.51" y2="48.75" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="34.91" y1="40.91" x2="39.5" y2="45.5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="40.5" y1="36.62" x2="42.75" y2="40.51" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="47.01" y1="33.92" x2="48.18" y2="38.27" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="54" y1="33" x2="54" y2="41.5" stroke="#C2C7FF" stroke-width="3" stroke-linecap="round"/>
+    <line x1="60.99" y1="33.92" x2="59.82" y2="38.27" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="67.5" y1="36.62" x2="65.25" y2="40.51" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="73.09" y1="40.91" x2="68.5" y2="45.5" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="77.38" y1="46.5" x2="73.49" y2="48.75" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="54" cy="60" r="12.5" fill="none" stroke="#FFFFFF" stroke-width="3.4"/>
+    <circle cx="54" cy="60" r="5.5" fill="#C2C7FF"/>
+  </g>
+</svg>

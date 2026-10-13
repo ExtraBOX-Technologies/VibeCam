@@ -3,3 +3,5 @@ This is based on the new GrapheneOS Camera app, with added polish and features. 
 Coming soon: signed releases you can install with [Obtainium](https://wiki.obtainium.imranr.dev/). Once the first release is published, copy this repository's GitHub URL into Obtainium and it will install the app and keep it up to date for you. Until then, the app has to be built from source.
 
 Google is actively working to remove your rights to your own device, so you may be blocked from side-loading apps at some point. I.e. installing your own apps outside their app store.
+
+The source code is under the MIT licence in `LICENSE`. The VibeCam name and icon are not covered by it; see `branding/README.md`.
