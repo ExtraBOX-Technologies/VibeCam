@@ -46,6 +46,7 @@ internal fun ViewfinderZoomDial(
     modifier: Modifier = Modifier,
 ) {
     val expansion = remember { ZoomDialExpansion() }
+    val shownZoom = remember { LastAdjustableZoom() }.update(zoom = zoom)
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
@@ -68,25 +69,30 @@ internal fun ViewfinderZoomDial(
             enter = FADE_IN,
             exit = FADE_OUT,
         ) {
-            ProvideContentRotation(degrees = rotationDegrees) {
-                ZoomDialControl(
-                    value = zoom.zoomRatio.coerceIn(zoom.minZoomRatio, zoom.maxZoomRatio),
-                    onValueChange = { zoomRatio ->
-                        expansion.onDialTurned(zoomRatio = zoomRatio)
-                        onAction(ZoomRatioRequested.DialTurned(zoomRatio = zoomRatio))
-                    },
-                    valueRange = zoom.minZoomRatio..zoom.maxZoomRatio,
-                    stops = zoom.stops,
-                    valueSuffix = stringResource(R.string.zoom_ratio_suffix),
-                    expanded = expansion.isExpanded,
-                    onExpand = expansion::expand,
-                    onStopClick = { stop ->
-                        expansion.onStopClicked(zoomRatio = stop)
-                        onAction(ZoomRatioRequested.StopClicked(zoomRatio = stop))
-                    },
-                    expandLabel = stringResource(R.string.zoom_adjust),
-                    interactionSource = interactionSource,
-                )
+            if (shownZoom != null) {
+                ProvideContentRotation(degrees = rotationDegrees) {
+                    ZoomDialControl(
+                        value = shownZoom.zoomRatio.coerceIn(
+                            shownZoom.minZoomRatio,
+                            shownZoom.maxZoomRatio,
+                        ),
+                        onValueChange = { zoomRatio ->
+                            expansion.onDialTurned(zoomRatio = zoomRatio)
+                            onAction(ZoomRatioRequested.DialTurned(zoomRatio = zoomRatio))
+                        },
+                        valueRange = shownZoom.minZoomRatio..shownZoom.maxZoomRatio,
+                        stops = shownZoom.stops,
+                        valueSuffix = stringResource(R.string.zoom_ratio_suffix),
+                        expanded = expansion.isExpanded,
+                        onExpand = expansion::expand,
+                        onStopClick = { stop ->
+                            expansion.onStopClicked(zoomRatio = stop)
+                            onAction(ZoomRatioRequested.StopClicked(zoomRatio = stop))
+                        },
+                        expandLabel = stringResource(R.string.zoom_adjust),
+                        interactionSource = interactionSource,
+                    )
+                }
             }
         }
     }
@@ -125,5 +131,22 @@ private class ZoomDialExpansion {
         if (!isOwnChange) {
             expand()
         }
+    }
+}
+
+/**
+ * The control goes on being drawn while it fades out, and it fades out exactly when the camera is
+ * between binds and has no zoom range to draw: it keeps the last range it could.
+ */
+private class LastAdjustableZoom {
+
+    private var last: ZoomUiState? = null
+
+    fun update(zoom: ZoomUiState): ZoomUiState? {
+        if (zoom.isAdjustable) {
+            last = zoom
+        }
+
+        return last
     }
 }
