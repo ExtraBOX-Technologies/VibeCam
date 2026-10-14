@@ -15,6 +15,14 @@ VibeCam keeps the privacy-first foundation of the GrapheneOS camera and adds the
 
 VibeCam has only been tested on a Pixel 10 Pro running GrapheneOS (a "Ghost Phone"). Efforts have been made to have it adapt to any Android phone, but your mileage may vary on other devices. Support for phones that expose each rear lens as a separate camera is experimental and untested on real hardware.
 
+## Why VibeCam exists
+
+VibeCam is the first of a planned set of "Vibe" apps: public proofs of concept, built largely with AI assistance, for features I want to see in GrapheneOS.
+
+GrapheneOS is a vital project and I want to see it grow. Its apps are improving, but some everyday things, like zooming while taking photos and videos, still felt painful to me. VibeCam is where I try fixes for those in the open and get them tested by real people. Each feature is intended to be proposed to [GrapheneOS Camera](https://github.com/GrapheneOS/Camera) as a pull request; whether it is accepted is up to the GrapheneOS project. If a feature is taken upstream, that is the best outcome, even if it makes VibeCam unnecessary.
+
+Please report problems with VibeCam's features here, not to GrapheneOS. If you value their work, consider [supporting GrapheneOS](https://grapheneos.org/donate).
+
 ## Install
 
 Coming soon: signed releases you can install with [Obtainium](https://wiki.obtainium.imranr.dev/). Once the first release is published, copy this repository's GitHub URL into Obtainium and it will install the app and keep it up to date for you. Until then, the app has to be built from source.
